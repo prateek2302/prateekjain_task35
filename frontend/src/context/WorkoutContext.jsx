@@ -1,7 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useReducer } from "react";
 
 const WorkoutContext = createContext(null);
-const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/workouts`;
+const API_BASE_URL = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace(/\/$/, "")
+  : import.meta.env.DEV
+    ? "http://localhost:5000/api"
+    : "";
+const API_URL = API_BASE_URL ? `${API_BASE_URL}/workouts` : "";
 
 const initialState = { workouts: [], loading: true, error: "" };
 
@@ -37,6 +42,9 @@ function workoutReducer(state, action) {
 }
 
 async function request(url, options) {
+  if (!url) {
+    throw new Error("Workout API isn't configured yet. Deploy the backend and set the VITE_API_URL repository variable.");
+  }
   const response = await fetch(url, options);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
